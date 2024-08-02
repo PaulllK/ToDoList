@@ -1,68 +1,113 @@
 import Component from "./Component";
 
+const templateHtmlElement = document.createElement('template');
+
+templateHtmlElement.innerHTML = `
+    <style>
+        li {
+            background-color: #f9f9f9;
+            padding: 10px;
+            margin: 10px 0;
+            border-left: 5px solid #5cb85c;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        span {
+            flex: 1;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #5cb85c;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #4cae4c;
+        }
+
+        button.taskButton {
+            margin: 0 10px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            font-size: 16px;
+        }
+    </style>
+
+    <li>
+        <span class="description"></span>
+        <button class="editButton taskButton">Edit</button>
+        <button class="deleteButton taskButton">Delete</button>
+    </li>
+`;
+
 export default class Task extends Component {
     constructor(htmlContainer, description) {
-        super(htmlContainer, 'li');
+        super(htmlContainer);
         this.description = description;
-
-        const descriptionSpan = document.createElement('span');
-        descriptionSpan.textContent = this.description;
-        this.htmlElement.appendChild(descriptionSpan);
-
-        const editButton = document.createElement('button');
-        editButton.textContent = 'Edit';
-        editButton.classList.add('taskButton');
-        this.htmlElement.appendChild(editButton);
-
-        const deleteButton = document.createElement('button');
-        deleteButton.textContent = 'Delete';
-        deleteButton.classList.add('taskButton');
-        this.htmlElement.appendChild(deleteButton);
-        
-
-        editButton.onclick = () => this.changeToEditMode(descriptionSpan, editButton);
-        deleteButton.onclick = () => this.delete(); 
     }
 
-    changeToEditMode(descriptionSpan, editButton) {
+    render() {
+        this.renderUsingTemplate(templateHtmlElement);
+
+        this.taskLi = this.shadowRoot.querySelector('li');
+
+        this.descriptionSpan = this.shadowRoot.querySelector('.description');
+        this.descriptionSpan.textContent = this.description;
+
+        this.editButton = this.shadowRoot.querySelector('.editButton');
+        this.deleteButton = this.shadowRoot.querySelector('.deleteButton');
+
+        this.editButton.onclick = () => this.changeToEditMode();
+        this.deleteButton.onclick = () => this.delete(); 
+    }
+
+    changeToEditMode() {
         const input = document.createElement('input');
         input.type = 'text';
         input.value = this.description;
 
-        this.htmlElement.insertBefore(input, descriptionSpan);
-        this.htmlElement.removeChild(descriptionSpan);
+        this.taskLi.insertBefore(input, this.descriptionSpan);
+        this.taskLi.removeChild(this.descriptionSpan);
 
-        editButton.textContent = 'Save';
-        editButton.onclick = () => this.updateTask(input, descriptionSpan, editButton);
+        this.editButton.textContent = 'Save';
+        this.editButton.onclick = () => this.updateTask(input);
     }
 
-    updateTask(input, descriptionSpan, editButton) {
-        // change li element back to its initial form
+    updateTask(input) {
+        // update description
         this.description = input.value;
-        descriptionSpan.textContent = this.description;
+        this.descriptionSpan.textContent = this.description;
 
-        this.htmlElement.insertBefore(descriptionSpan, input);
-        this.htmlElement.removeChild(input);
+        // update li element back to its initial form
+        this.taskLi.insertBefore(this.descriptionSpan, input);
+        this.taskLi.removeChild(input);
 
-        editButton.textContent = 'Edit';
-        editButton.onclick = () => this.changeToEditMode(descriptionSpan, editButton);
+        this.editButton.textContent = 'Edit';
+        this.editButton.onclick = () => this.changeToEditMode();
 
         // update in local storage
-        const taskIndex = Array.from(this.htmlContainer.children).indexOf(this.htmlElement);
+        const taskIndex = Array.from(this.parentElement.children).indexOf(this);
         let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
         tasks[taskIndex] = this.description;
         localStorage.setItem('tasks', JSON.stringify(tasks));
     }
 
     delete() {
-        const taskIndex = Array.from(this.htmlContainer.children).indexOf(this.htmlElement);
-        this.htmlElement.remove();
+        const taskIndex = Array.from(this.parentElement.children).indexOf(this);
+        this.remove();
         let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
         tasks.splice(taskIndex, 1);
-
-        if (tasks.length === 0)
-            this.htmlContainer.classList.add('hidden');
-
         localStorage.setItem('tasks', JSON.stringify(tasks));
     }
 }
+
+customElements.define('task-item', Task);

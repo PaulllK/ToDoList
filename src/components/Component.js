@@ -1,12 +1,17 @@
-export default class Component {
-    constructor(htmlContainer, htmlElementType) {
-        this.htmlElement = document.createElement(htmlElementType);
+export default class Component extends HTMLElement {
+    constructor(htmlContainer) {
+        super();
+        this.attachShadow({ mode: 'open' });
         this.htmlContainer = htmlContainer;
-        console.log(this.htmlContainer);
-        this.htmlContainer.appendChild(this.htmlElement);
+    }
+
+    renderUsingTemplate(templateHtmlElement) {
+        this.shadowRoot.appendChild(templateHtmlElement.content.cloneNode(true));
+        this.htmlContainer.appendChild(this);
     }
 
     appendContent(content) {
-        this.htmlElement.innerHTML += content;
+        this.innerHTML += content; // add content (html element or text) in the dom
+        this.shadowRoot.querySelector('slot').appendChild += this.lastChild; // add the corresponding DOM node to the shadow root
     }
 }
