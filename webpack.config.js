@@ -6,7 +6,7 @@ module.exports = {
   entry: './src/index.js', // entry point of your application
   output: {
     filename: 'bundle.js', // output file
-    path: path.resolve(__dirname, 'dist'), // output directory
+    path: path.resolve(__dirname, 'docs'), // output directory
   },
   module: {
     rules: [
@@ -33,7 +33,7 @@ module.exports = {
   ],
   devServer: {
     static: {
-        directory: path.join(__dirname, 'dist'),
+        directory: path.join(__dirname, 'docs'),
     },
     compress: true,
     port: 8000, // port to run the server
